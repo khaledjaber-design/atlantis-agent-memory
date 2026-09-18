@@ -1,0 +1,12 @@
+{
+  "name": "nova-memory-demo-starter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Small synthetic checkout project for the Nova Marketplace memory comparison",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
