@@ -6,7 +6,7 @@ The starter checkout contains no promotion rule. It uses integer cents and Node.
 
 ## Prerequisites
 
-- Node.js 20 or newer and a coding agent that can run terminal commands.
+- Node.js 20.6 or newer and a coding agent that can run terminal commands.
 - A TiDB Cloud Starter database and a self-hosted mem9 server. Follow the repository's [setup guide](../../../SETUP.md) to create `mnemos` and load `mem9/server/schema.sql`.
 - A TiDB DSN with `parseTime=true&tls=true` in `MNEMO_DSN`. Keep it and the generated key in your local environment; never commit them.
 
@@ -20,21 +20,21 @@ Run `node bin/memory.js remember` and enter a harmless synthetic test fact. Copy
 
 ## Prepare identical workspaces
 
-From this `demo` directory, run `node bin/prepare.js <new empty output directory>`. This creates `baseline` and `with-memory` with identical code, tests, and memory client. Do not copy this README, facilitator notes, or your day-one decision into either workspace. Check that `npm test` passes in both before starting. Use the same agent model and settings for both runs.
+From this `demo` directory, run `node bin/prepare.js <new empty output directory>`. This creates `baseline` and `with-memory` with identical code, tests, and memory client. Put a local `.env` file containing `MEM9_API_KEY=<your demo space key>` in `with-memory` only. Do not copy this README, facilitator notes, or your day-one decision into either workspace. Check that `npm test` passes in both before starting. Use the same agent model and settings for both runs.
 
 ## Session one: give both agents the decision
 
 Choose a fictional Friday free-shipping decision with several edge cases. Keep its exact wording outside the repository until both day-two runs are finished. Open a separate agent session in each prepared workspace. Give each agent **the same message**, replacing the bracketed part with the exact decision:
 
-> Today we agreed on this Nova Marketplace Friday free-shipping rule: [decision]. Do not edit code today. If persistent memory is available, store the exact rule using `node bin/memory.js remember "..."` and report the memory ID. If memory is unavailable, say so. We will continue tomorrow.
+> Today we agreed on this Nova Marketplace Friday free-shipping rule: [decision]. Do not edit code today. If persistent memory is available, store the exact rule using `node --env-file=.env bin/memory.js remember "..."` and report the memory ID. If memory is unavailable, say so. We will continue tomorrow.
 
-For the baseline agent, leave `MEM9_API_KEY` unset. For the memory agent, set `MEM9_API_KEY` to the local demo space key. Do not give either agent a prior chat transcript or the exact decision in a file. Close both sessions after recording their replies.
+For the baseline agent, leave `.env` absent and `MEM9_API_KEY` unset. For the memory agent, use only the local `.env` described above. Do not give either agent a prior chat transcript or the exact decision in a file. Close both sessions after recording their replies.
 
 ## Session two: fresh agents, same prompt
 
-Start a **new session** in each workspace. Preserve the environment difference: baseline has no key; memory has the same key as session one. Send the same message to each:
+Start a **new session** in each workspace. Preserve the environment difference: baseline has no `.env`; memory has the same local `.env` as session one. Send the same message to each:
 
-> Implement the Friday free-shipping eligibility check we agreed on yesterday. Add tests for the edge cases. First try `node bin/memory.js recall "Friday shipping"`. If you cannot recover the full rule, ask for the missing details rather than inventing them. Do not use an earlier chat transcript.
+> Implement the Friday free-shipping eligibility check we agreed on yesterday. Add tests for the edge cases. First try `node --env-file=.env bin/memory.js recall "Friday shipping"`. If you cannot recover the full rule, ask for the missing details rather than inventing them. Do not use an earlier chat transcript.
 
 Do not answer questions or correct either agent until both runs are captured. Record the first response, tool output, code diff, and tests for each. If the memory run fails to retrieve the rule, report that failure; do not silently repair it. The comparison is about observed behavior.
 

@@ -34,10 +34,30 @@ async function remember(content, env, fetchImpl) {
   }, env, fetchImpl);
 }
 
-function recall(query, env, fetchImpl) {
+function matchingMemories(payload, query) {
+  const memories = Array.isArray(payload) ? payload : (payload.memories || []);
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  return memories.filter((memory) => {
+    const content = String(memory.content || '').toLowerCase();
+    return terms.every((term) => content.includes(term));
+  });
+}
+
+async function recall(query, env, fetchImpl) {
   if (!query || !query.trim()) throw new Error('Search query cannot be empty.');
   const params = new URLSearchParams({ q: query.trim(), search_mode: 'keyword', limit: '20' });
-  return request(`/v1alpha2/mem9s/memories?${params}`, {}, env, fetchImpl);
+  const searched = await request(`/v1alpha2/mem9s/memories?${params}`, {}, env, fetchImpl);
+  const searchedMemories = Array.isArray(searched) ? searched : (searched.memories || []);
+  if (searchedMemories.length > 0) return searched;
+
+  // TiDB deployments can retain memories while their keyword index/search path
+  // is unavailable. Fall back to the authenticated list and match all query
+  // terms so a persisted decision remains recallable for this small demo.
+  const listed = await request('/v1alpha2/mem9s/memories?limit=200', {}, env, fetchImpl);
+  const memories = matchingMemories(listed, query.trim());
+  return Array.isArray(listed)
+    ? memories
+    : { ...listed, memories, total: memories.length, limit: 20, offset: 0 };
 }
 
 function inspect(id, env, fetchImpl) {
@@ -45,4 +65,4 @@ function inspect(id, env, fetchImpl) {
   return request(`/v1alpha2/mem9s/memories/${encodeURIComponent(id)}`, {}, env, fetchImpl);
 }
 
-module.exports = { config, request, remember, recall, inspect };
+module.exports = { config, request, remember, recall, inspect, matchingMemories };
